@@ -1,0 +1,43 @@
+addpath('netlab');
+FileName   = 'marine_data.txt';
+FolderName = '';
+File       = fullfile(FileName);
+load(File);   
+
+x1=marine_data(1:250,1);
+x2=marine_data(1:250,2);
+x3=marine_data(1:250,3);
+x4=marine_data(1:250,4);
+x5=marine_data(1:250,5);
+x6=marine_data(1:250,6);
+dataA=marine_data;
+
+p = 0.7;     % proportion of rows to select for training
+
+N = size(dataA,1);  % total number of rows 
+tf = false(N,1);    % create logical index vector
+tf(1:round(p*N)) = true;     
+tf = tf(randperm(N));   % randomise order
+dataTraining = dataA(tf,:); 
+dataTesting = dataA(~tf,:);
+
+X=dataTraining(:,1:6);
+y=dataTraining(:,7);
+X_test=dataTesting(:,1:6);
+Y_test=dataTesting(:,7);
+
+options = zeros(1,18);
+options(1) = 0; %display iteration values
+options(14) = 5000; %maximum number of training cycles (epochs)
+
+net = mlp(6,15,1,'linear');
+[net, options] = netopt(net, options,X,y, 'scg'); 
+
+X_pred = mlpfwd(net,X_test);
+X_trainPred=mlpfwd(net,X);
+
+mse_test=immse(X_pred(:,1),Y_test);
+mse_train=immse(X_trainPred(:,1),y);
+
+sqrt(mse_train)
+sqrt(mse_test)
